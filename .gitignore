@@ -1,0 +1,10 @@
+__pycache__/
+*.sif
+*.def
+*.sh
+*.yaml
+logs/*
+snapshots/
+storage/
+mnt/
+.qdrant*
