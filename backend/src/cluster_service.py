@@ -24,7 +24,9 @@ class ClusterService:
     
     def select_cluster_terms(self, terms, max_terms=5):
         
-        filtered_terms = [term for term in terms if bool(re.search(r'[a-zA-Z]', term))]
+        filtered_terms = [
+            term for term in terms if bool(re.search(r'[a-zA-Z]', term))
+        ]
         term_counts = Counter(filtered_terms)
 
         repeated_terms = [term for term, count in term_counts.items() if count > 1]
@@ -58,6 +60,7 @@ class ClusterService:
 
             results_in_cluster = []
             all_terms = []
+            scores = []
             
             for image_id in group:
 
@@ -68,18 +71,28 @@ class ClusterService:
                 terms = terms_str.split('__SEP__') if terms_str else []
                 all_terms.extend(term.strip() for term in terms if term.strip())
 
+                scores.append(sample.get('score', 0.0))
+
                 results_in_cluster.append({
                     'id': image_id,
                     'image': image,
                     'patent': ''.join(sample['metadata']['__key__'].split('_')[:-2]),
-                    'metadata': sample['metadata']
+                    'metadata': sample['metadata'],
+                    'score': sample.get('score', 0.0)
                 })
             
+            avg_score = sum(scores) / len(scores) if scores else 0.0
+
             clustered_results[cluster_id] = {
-                "results": results_in_cluster,
-                "terms": self.select_cluster_terms(all_terms)
+                'results': results_in_cluster,
+                'terms': self.select_cluster_terms(all_terms),
+                'avg_score': avg_score
             }
         
         return OrderedDict(
-            sorted(clustered_results.items(), key=lambda x: x[0])
+            sorted(
+                clustered_results.items(),
+                key=lambda x: x[1]['avg_score'],
+                reverse=True
+            )
         )
