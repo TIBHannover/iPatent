@@ -5,9 +5,7 @@ import logging
 from minio import Minio
 from minio.error import S3Error
 
-from torch.utils.data import DataLoader
-
-from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logging.basicConfig(
     filename='logs/index.log',
@@ -72,27 +70,36 @@ class MinIOIndex:
         return total_added
     
     def fetch_all(
-        self,
-        bucket_name,
-        ids
+        self, bucket_name, ids
     ):
-        images = []
+        """
+        Concurrently fetch images from MinIO bucket as BytesIO objects.
+        """
+        images = [None] * len(ids)
 
-        try:
-            if not self.client.bucket_exists(bucket_name):
-                raise ValueError(f"Bucket '{bucket_name}' does not exist.")
+        if not self.client.bucket_exists(bucket_name):
+            raise ValueError(f"Bucket '{bucket_name}' does not exist.")
 
-            for id in ids:
+        def fetch(index, object_id):
+            try:
+                response = self.client.get_object(bucket_name, object_id)
+                image_data = io.BytesIO(response.data)
+                image_data.seek(0)
+                return index, image_data
+            except S3Error as e:
+                logger.error(f"Retrieval failed for {object_id}: {e}")
+                return index, None
+            finally:
                 try:
-                    response = self.client.get_object(bucket_name, id)
-                    image = io.BytesIO(response.data)
-                    image.seek(0)
-                    images.append(image)
-                except S3Error as e:
-                    logger.error(f"Retrieval failed for {id}: {e}")
-                finally:
                     response.close()
                     response.release_conn()
-        except S3Error as e:
-            logger.error(f"Error accessing bucket or client: {e}")
-        return images
+                except Exception:
+                    pass
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [executor.submit(fetch, i, obj_id) for i, obj_id in enumerate(ids)]
+            for future in as_completed(futures):
+                index, image = future.result()
+                images[index] = image
+
+        return [img for img in images if img is not None]
