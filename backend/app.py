@@ -92,17 +92,17 @@ class Server:
 
         return clustered_results
 
-    def generate_desrciptions(self, clustered_results):
+    def generate_titles_and_desrciptions(self, clustered_results):
         
-        descriptions = {}
+        cluster_contents = {}
 
-        for group, cluster_group in clustered_results.items():
+        for cluster_id, cluster_group in clustered_results.items():
 
-            descriptions[group] = self.lvlm_service.generate_cluster_description(
-                cluster_group['results']
+            cluster_contents[cluster_id] = self.lvlm_service.generate_cluster_content(
+                cluster_samples=cluster_group['results']
             )
         
-        return descriptions
+        return cluster_contents
     
     def project(self, clustered_results):
 

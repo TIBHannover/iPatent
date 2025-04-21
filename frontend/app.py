@@ -86,23 +86,22 @@ def main():
                     top_k=settings['clustering']['top_k']
                 )
 
+            with st.spinner("Generating cluster titles and descriptions. This may take a while..."):
+
                 if settings['clustering']['with_description']:
 
-                    cluster_descriptions = server.generate_desrciptions(clustered_results)
+                    cluster_contents = server.generate_titles_and_desrciptions(
+                        clustered_results=clustered_results
+                    )
 
-                    for cluster_id, description in cluster_descriptions.items():
+                    for cluster_id, content in cluster_contents.items():
                         if cluster_id in clustered_results:
-                            clustered_results[cluster_id]['description'] = description
+                            clustered_results[cluster_id]['title'] = content['title']
+                            clustered_results[cluster_id]['description'] = content['description']
 
-                # projected_points = server.project(clustered_results)
-
-                # cluster_tabs = st.tabs(['Grid View', 'Graph View'])
-
-                # with cluster_tabs[0]:
-                gridview.render_cluster(clustered_results=clustered_results)
-
-                # with cluster_tabs[1]:
-                #     graphview.render(points=projected_points)
+            gridview.render_cluster(
+                clustered_results=clustered_results, w_desc=settings['clustering']['with_description']
+            )
 
 if __name__ == "__main__":
     main()
