@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_cropper import st_cropper
 
 from src.components import (
-    sidebar, searchbar, gridview, graphview
+    sidebar, searchbar, gridview
 )
 
 from backend.app import Server
@@ -70,7 +70,7 @@ def main():
 
     if results:
 
-        tabs = st.tabs(['Ranked Results', 'Clusters'])
+        tabs = st.tabs(['Ranked Grid View', 'Cluster View'])
 
         with tabs[0]:
             gridview.render(results, top_k=settings['retrieval']['top_k'])
@@ -100,7 +100,8 @@ def main():
                             clustered_results[cluster_id]['description'] = content['description']
 
             gridview.render_cluster(
-                clustered_results=clustered_results, w_desc=settings['clustering']['with_description']
+                clustered_results=clustered_results,
+                w_desc=settings['clustering']['with_description']
             )
 
 if __name__ == "__main__":

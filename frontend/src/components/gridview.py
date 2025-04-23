@@ -98,7 +98,7 @@ def display_cluster_row(results):
 
     html += "</div>"
 
-    st.markdown(html, unsafe_allow_html=True)
+    st.html(html)
 
 def render(results, top_k=None):
     

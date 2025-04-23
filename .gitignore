@@ -4,7 +4,4 @@ __pycache__/
 *.sh
 *.yaml
 logs/*
-snapshots/
-storage/
-mnt/
 .qdrant*
