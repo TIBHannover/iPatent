@@ -10,3 +10,4 @@ storage/
 mnt/
 .qdrant*
 *.toml
+.qdrant*

@@ -9,13 +9,19 @@ from shared.utils.constants import ESPACENET_URL
 
 def encode_image(image):
 
+    image = Image.open(image)
+    image = image.resize((224, 224))
+    
     buffered = io.BytesIO()
     image.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return f'<img src="data:image/png;base64,{img_str}" width="224" height="224"/>'
 
-def render_label_pills(labels):
-    if not labels:
+def patent_link(patent):
+    return f'<a href="{ESPACENET_URL}+{patent}" target="_blank" style="color: rgb(46, 154, 255); text-decoration: underline;">{patent}</a>'
+
+def render_keywords_pills(keywords):
+    if not keywords:
         return
 
     st.markdown(
@@ -36,8 +42,23 @@ def render_label_pills(labels):
         unsafe_allow_html=True
     )
 
-    html = "".join([f'<span class="pill">{label}</span>' for label in labels])
+    html = "".join([f'<span class="pill">{keyword}</span>' for keyword in keywords])
+    html += "<br/>"
     st.markdown(html, unsafe_allow_html=True)
+
+def display_similarity_score(score):
+    score_percent = int(score * 100)
+    progress_html = f"""
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+            <div style="flex-grow: 1; background-color: #e0e0e0; border-radius: 5px; height: 10px; position: relative;">
+                <div style="width: {score_percent}%; background-color: #4CAF50; height: 100%; border-radius: 5px;"></div>
+            </div>
+            <div style="min-width: 40px; text-align: right; font-size: 0.85rem; color: gray;">
+                {score_percent}%
+            </div>
+        </div>
+    """
+    st.markdown(progress_html, unsafe_allow_html=True)
 
 def display_row(results, grid_size):
 
@@ -47,17 +68,17 @@ def display_row(results, grid_size):
         with grid_cols[col]:
             
             image = Image.open(result['image'])
-            _thumbnail = image.resize((224, 224))
-            st.image(image=_thumbnail, width=224)
-            
-            patent_link = f'<a href="{ESPACENET_URL}+{result["patent"]}" target="_blank" style="color: rgb(46, 154, 255); text-decoration: underline;">{result["patent"]}</a>'
+            st.image(image=image, use_container_width=True)
+            display_similarity_score(result['score'])
 
             html = f"""
             <div style="flex: 0 0 auto; text-align: center;">
-                <span style="text-align: center;">{result["rank"]}: {patent_link}</span>
+                <span style="text-align: center;">{patent_link(result['patent'])}</span>
             </div>"""
 
-            st.html(html)
+            st.markdown(html, unsafe_allow_html=True)
+
+            st.markdown('---')
 
 def display_cluster_row(results):
 
@@ -66,16 +87,12 @@ def display_cluster_row(results):
     """
 
     for result in results:
-        image = Image.open(result['image'])
-        _thumbnail = image.resize((224, 224))
-        img_html = encode_image(image=_thumbnail)
-
-        patent_link = f'<a href="{ESPACENET_URL}+{result["patent"]}" target="_blank" style="color: rgb(46, 154, 255); text-decoration: underline;">{result["patent"]}</a>'
+        img_html = encode_image(image=result['image'])
 
         html += f"""
         <div style="flex: 0 0 auto; text-align: center;">
             {img_html}<br>
-            <span style="text-align: center;">{patent_link}</span>
+            <span style="text-align: center;">{patent_link(result['patent'])}</span>
         </div>
         """
 
@@ -85,7 +102,7 @@ def display_cluster_row(results):
 
 def render(results, top_k=None):
     
-    grid_size = 10
+    grid_size = 6
 
     top_k_results = results[:top_k] if top_k else results
 
@@ -96,22 +113,31 @@ def render(results, top_k=None):
     for batch in batched_results:
         display_row(batch, grid_size)
 
-def render_cluster(clustered_results):
+def render_cluster(clustered_results, w_desc=False):
 
-    for cluster_id, cluster_data in clustered_results.items():
+    if w_desc:
+        st.markdown("""
+            <div style='font-size: 0.9rem; color: gray; padding: 0.5em 0;'>
+            ⚠️ <strong>Disclaimer:</strong> The titles and descriptions below are generated using a Large Vision-language Model (LVLM). They may not be fully accurate or reliable. We assume no liability for their use.
+            </div>
+        """, unsafe_allow_html=True)
 
-        st.markdown(f"### 🔹 Cluster {cluster_id+1}")
+    for id, (_, cluster_data) in enumerate(clustered_results.items(), start=1):
+
+        title = cluster_data.get("title", "")
+        st.markdown(
+            f"### Cluster - {title if 'title' in cluster_data else id}"
+        )
 
         if 'description' in cluster_data:
             st.write(cluster_data.get("description", ""))
 
-        unique_labels = cluster_data.get("labels", [])
-        unique_labels = unique_labels[:min(10, len(unique_labels))]
+        terms = cluster_data.get("terms", [])
 
-        if unique_labels:
-            render_label_pills(unique_labels)
+        if terms:
+            render_keywords_pills(terms)
         else:
-            st.markdown("_No labels found._")
+            st.markdown("_No keywords found._")
 
         display_cluster_row(cluster_data['results'])
 

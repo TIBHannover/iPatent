@@ -1,6 +1,8 @@
+import copy
+
 from backend.src import (
     index_service, encoder_service,
-    cluster_service, projection_service,
+    cluster_service,
     lvlm_service
 )
 
@@ -18,9 +20,6 @@ class Server:
             host_url=config['lvlm']['host_url'],
             model_name=config['lvlm']['model_name'],
             max_images=config['lvlm']['max_images']
-        )
-        self.projection_service = projection_service.ProjectionService(
-            n_components=3
         )
     
     def text_search(self, query, filters=None, limit=10):
@@ -92,20 +91,14 @@ class Server:
 
         return clustered_results
 
-    def generate_desrciptions(self, clustered_results):
+    def generate_titles_and_desrciptions(self, clustered_results):
         
-        descriptions = {}
+        cluster_contents = {}
 
-        for group, cluster_group in clustered_results.items():
+        for cluster_id, cluster_group in clustered_results.items():
 
-            descriptions[group] = self.lvlm_service.generate_cluster_description(
-                cluster_group['results']
+            cluster_contents[cluster_id] = self.lvlm_service.generate_cluster_content(
+                cluster_samples=cluster_group['results']
             )
         
-        return descriptions
-    
-    def project(self, clustered_results):
-
-        return self.projection_service.project(
-            clustered_results=clustered_results
-        )
+        return cluster_contents

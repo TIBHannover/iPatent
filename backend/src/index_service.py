@@ -18,9 +18,6 @@ class IndexService:
             secure=False
         )
         self.collection_name = config['qdrant']['collection_name']
-    
-    def get_filters(self, filters):
-        return self.qdrant_index.dict_to_filter(filters) if filters else None
 
     def get_fused_results(self, text_results, image_results, text_weight=0.5, limit=10):
 
@@ -56,7 +53,7 @@ class IndexService:
             collection_name=self.collection_name,
             query_vector=query_vector,
             limit=limit,
-            filters=self.get_filters(filters)
+            filters=filters
         )
 
     def get_vectors_by_ids(self, image_ids):

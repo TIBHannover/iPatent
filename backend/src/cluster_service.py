@@ -1,4 +1,7 @@
-from collections import defaultdict
+import re
+from collections import (
+    defaultdict, Counter, OrderedDict
+)
 
 import torch
 
@@ -18,6 +21,22 @@ class ClusterService:
         self.model = ClusterModelFactory.get_cluster_model(
             model_name=model_name, n_clusters=n_clusters
         )
+    
+    def select_cluster_terms(self, terms, max_terms=5):
+        
+        filtered_terms = [
+            term for term in terms if bool(re.search(r'[a-zA-Z]', term))
+        ]
+        term_counts = Counter(filtered_terms)
+
+        repeated_terms = [term for term, count in term_counts.items() if count > 1]
+
+        if repeated_terms:
+            selected = repeated_terms[:max_terms]
+        else:
+            selected = list(term_counts.keys())[:max_terms]
+
+        return selected
     
     def get_cluster_groups(self, image_ids, sample_dict, image_dict):
         
@@ -40,27 +59,40 @@ class ClusterService:
         for cluster_id, group in clustered_id_groups.items():
 
             results_in_cluster = []
-            all_labels = []
+            all_terms = []
+            scores = []
             
             for image_id in group:
 
                 sample = sample_dict[image_id]
                 image = image_dict[image_id]
 
-                labels_str = sample['metadata'].get('labels.txt', '')
-                labels = labels_str.split('__SEP__') if labels_str else []
-                all_labels.extend(label.strip() for label in labels if label.strip())
+                terms_str = sample['metadata'].get('labels.txt', '')
+                terms = terms_str.split('__SEP__') if terms_str else []
+                all_terms.extend(term.strip() for term in terms if term.strip())
+
+                scores.append(sample.get('score', 0.0))
 
                 results_in_cluster.append({
                     'id': image_id,
                     'image': image,
                     'patent': ''.join(sample['metadata']['__key__'].split('_')[:-2]),
-                    'metadata': sample['metadata']
+                    'metadata': sample['metadata'],
+                    'score': sample.get('score', 0.0)
                 })
             
+            avg_score = sum(scores) / len(scores) if scores else 0.0
+
             clustered_results[cluster_id] = {
-                "results": results_in_cluster,
-                "labels": list(set(all_labels))
+                'results': results_in_cluster,
+                'terms': self.select_cluster_terms(all_terms),
+                'avg_score': avg_score
             }
         
-        return clustered_results
+        return OrderedDict(
+            sorted(
+                clustered_results.items(),
+                key=lambda x: x[1]['avg_score'],
+                reverse=True
+            )
+        )
