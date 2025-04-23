@@ -1,3 +1,4 @@
+.env/
 __pycache__/
 *.sif
 *.def
@@ -8,3 +9,4 @@ snapshots/
 storage/
 mnt/
 .qdrant*
+*.toml
