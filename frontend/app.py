@@ -73,7 +73,10 @@ def main():
         tabs = st.tabs(['Ranked Grid View', 'Cluster View'])
 
         with tabs[0]:
-            gridview.render(results, top_k=settings['retrieval']['top_k'])
+            gridview.render(
+                results,
+                top_k=settings['retrieval']['top_k'],
+                per_row=settings['retrieval']['per_row'])
 
         with tabs[1]:
 

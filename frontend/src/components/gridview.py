@@ -17,8 +17,8 @@ def encode_image(image):
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return f'<img src="data:image/png;base64,{img_str}" width="224" height="224"/>'
 
-def patent_link(patent):
-    return f'<a href="{ESPACENET_URL}+{patent}" target="_blank" style="color: rgb(46, 154, 255); text-decoration: underline;">{patent}</a>'
+def patent_link(patent, title):
+    return f'<a href="{ESPACENET_URL}+{patent}" target="_blank" style="color: rgb(46, 154, 255); text-decoration: underline;" title="{title.title()}">{patent}</a>'
 
 def render_keywords_pills(keywords):
     if not keywords:
@@ -73,7 +73,7 @@ def display_row(results, grid_size):
 
             html = f"""
             <div style="flex: 0 0 auto; text-align: center;">
-                <span style="text-align: center;">{patent_link(result['patent'])}</span>
+                <span style="text-align: center;">{patent_link(result['patent'], result['metadata']['title.txt'])}</span>
             </div>"""
 
             st.markdown(html, unsafe_allow_html=True)
@@ -92,7 +92,7 @@ def display_cluster_row(results):
         html += f"""
         <div style="flex: 0 0 auto; text-align: center;">
             {img_html}<br>
-            <span style="text-align: center;">{patent_link(result['patent'])}</span>
+            <span style="text-align: center;">{patent_link(result['patent'], result['metadata']['title.txt'])}</span>
         </div>
         """
 
@@ -100,9 +100,9 @@ def display_cluster_row(results):
 
     st.html(html)
 
-def render(results, top_k=None):
+def render(results, top_k=None, per_row=6):
     
-    grid_size = 6
+    grid_size = per_row
 
     top_k_results = results[:top_k] if top_k else results
 

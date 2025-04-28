@@ -9,31 +9,21 @@ def render():
         with st.expander(label='Retrieval', expanded=True):
             
             top_k = st.number_input(
-                label='Top k', key='top_k',
+                label='Select top k', key='top_k',
                 min_value=10, max_value=500, step=10, value=100,
                 help='Select number of results to display'
+            )
+
+            per_row = st.number_input(
+                label='Select no. of results per row', key='per_row',
+                min_value=1, max_value=10, step=1, value=6,
+                help='Select number of results to display per row'
             )
 
             text_weightage = st.slider(
                 label='Text Weight', key='text_weightage',
                 min_value=0.0, max_value=1.0, step=0.1, value=0.5,
                 help='Select weightage of text'
-            )
-
-        with st.expander(label='Filters', expanded=True):
-            
-            figure_types = st.multiselect(
-                label='Figure Type', key='figure_type',
-                help='Select figure types to retrieve',
-                options=[
-                    'Flowchart','Drawing','Diagram','Photo','Math','Chemistry','Code'
-                ]
-            )
-
-            cpc_sections = st.multiselect(
-                label='CPC Section', key='cpc_sections',
-                help='Select CPC sections',
-                options=['A','B','C','D','E','F','G','H','Y']
             )
 
         with st.expander(label='Clustering', expanded=True):
@@ -64,11 +54,8 @@ def render():
     return {
         'retrieval': {
             'top_k': top_k,
+            'per_row': per_row,
             'text_weightage': text_weightage
-        },
-        'filters': {
-            'cpc_sections': cpc_sections,
-            'figure_types': figure_types
         },
         'clustering': {
             'cluster_model': cluster_model,
