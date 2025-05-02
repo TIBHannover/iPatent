@@ -64,7 +64,7 @@ def render():
 
         st.markdown(
         """
-        <a href="https://github.com/TIBHannover/iPatent" target="_blank">
+        <a href="https://github.com/TIBHannover/iPatent/tree/workshop-submission" target="_blank">
             <img src="https://img.shields.io/badge/View%20on%20GitHub-grey?logo=github"
                 alt="View on GitHub"
                 style="border:0;height:30px;margin-top:20px;"/>
