@@ -1,6 +1,6 @@
 # iPatent - Interactive Patent Search and Analysis
 
-[![Streamlit App](https://img.shields.io/badge/Streamlit%20App-red?logo=streamlit&logoColor=white)](https://service.tib.eu/iPatent)
+[![Streamlit App](https://img.shields.io/badge/Open%20Streamlit%20Demo-red?logo=streamlit&logoColor=white)](https://service.tib.eu/ipatent/)
 
 ![](interface.png)
 
