@@ -4,6 +4,17 @@ def render():
 
     with st.sidebar:
 
+        st.markdown(
+            """
+            <h1 style='text-align: left; font-size: 2.25em; font-family: "Segoe UI", Arial, sans-serif; margin-bottom: 0.1em;'>
+                iPatent
+            </h1>
+            <div style='text-align: left; color: #555; font-family: "Segoe UI", Arial, sans-serif; margin-top: 0; margin-bottom: 1.2em;'>
+                Interactive Patent Search and Analysis
+            </div>
+            """, unsafe_allow_html=True
+        )
+
         st.title('Settings')
 
         with st.expander(label='Retrieval', expanded=True):
@@ -50,6 +61,15 @@ def render():
                 label='Generate cluster descriptions', key='w_desc',
                 help='Select to generate descriptions for each cluster using LLaVA-1.6-Vicuma LVLM'
             )
+
+        st.markdown(
+        """
+        <a href="https://github.com/TIBHannover/iPatent" target="_blank">
+            <img src="https://img.shields.io/badge/View%20on%20GitHub-grey?logo=github"
+                alt="View on GitHub"
+                style="border:0;height:30px;margin-top:20px;"/>
+        </a>
+        """, unsafe_allow_html=True)
 
     return {
         'retrieval': {
